@@ -22,10 +22,12 @@ type correlateCreate struct {
 	insertStmt       *sql.Stmt
 }
 
-var openDatabaseList = struct {
+type openDatabaseListT struct {
 	sync.RWMutex
 	m map[string]*sql.DB
-}{m: make(map[string]*sql.DB)}
+}
+
+var openDatabaseList = openDatabaseListT{m: make(map[string]*sql.DB)}
 
 func init() {
 	processors.RegisterPlugin("correlate_create",
@@ -36,6 +38,10 @@ func init() {
 		configChecked(newCorrelateUse,
 			requireFields("field_key", "database_name"),
 			allowedFields("field_key", "database_name", "nested_field", "when")))
+	processors.RegisterPlugin("correlate_delete",
+		configChecked(newCorrelateDelete,
+			requireFields("field_key", "database_name"),
+			allowedFields("field_key", "database_name", "when")))
 }
 
 func newCorrelateCreate(c common.Config) (processors.Processor, error) {
@@ -126,8 +132,7 @@ func newCorrelateCreate(c common.Config) (processors.Processor, error) {
 }
 
 func sqlQuoteColumn(column string) string {
-	// FIXME
-	return column
+	return "[" + column + "]"
 }
 
 func (ccor correlateCreate) Run(event common.MapStr) (common.MapStr, error) {
@@ -182,7 +187,7 @@ func newCorrelateUse(c common.Config) (processors.Processor, error) {
 		logp.Warn("Error database not declared", config.DatabaseName)
 		return nil, fmt.Errorf("Error database not declared %s", config.DatabaseName)
 	}
-	queryStmtText := "SELECT * from correlated WHERE _beat_corr_key = ?"
+	queryStmtText := "SELECT * from correlated WHERE _beat_corr_key = ?;"
 	queryStmt, err := database.Prepare(queryStmtText)
 	if err != nil {
 		logp.Warn("Error preparing query statment")
@@ -200,6 +205,7 @@ func (ccor correlateUse) Run(event common.MapStr) (common.MapStr, error) {
 		return event, nil
 	}
 	rows, err := ccor.queryStmt.Query(fieldKey)
+	defer rows.Close()
 	if err != nil {
 		logp.Info("correlate_use database %s : problem with query %s", ccor.databaseName, err)
 		return nil, err
@@ -249,4 +255,59 @@ func (ccor correlateUse) Run(event common.MapStr) (common.MapStr, error) {
 
 func (ccor correlateUse) String() string {
 	return "correlateUse database=" + ccor.databaseName + " field_key=" + ccor.fieldKey
+}
+
+type correlateDelete struct {
+	fieldKey     string
+	database     *sql.DB
+	databaseName string
+	deleteStmt   *sql.Stmt
+}
+
+func newCorrelateDelete(c common.Config) (processors.Processor, error) {
+	var config struct {
+		FieldKey     string `config:"field_key"`
+		DatabaseName string `config:"database_name"`
+	}
+	err := c.Unpack(&config)
+	if err != nil {
+		logp.Warn("Error unpacking config for correlateDelete")
+		return nil, fmt.Errorf("fail to unpack the correlateDelete configuration: %s", err)
+	}
+	database, ok := func() (*sql.DB, bool) {
+		openDatabaseList.RLock()
+		defer openDatabaseList.RUnlock()
+		db, ok := openDatabaseList.m[config.DatabaseName]
+		return db, ok
+	}()
+	if !ok {
+		logp.Warn("Error database not declared", config.DatabaseName)
+		return nil, fmt.Errorf("Error database not declared %s", config.DatabaseName)
+	}
+	deleteStmtText := "DELETE from correlated WHERE _beat_corr_key = ?"
+	deleteStmt, err := database.Prepare(deleteStmtText)
+	if err != nil {
+		logp.Warn("Error preparing delete statment", err)
+		return nil, fmt.Errorf("Error preparing query statment: \"%s\" %s", deleteStmtText, err)
+	}
+	return correlateDelete{fieldKey: config.FieldKey, database: database, databaseName: config.DatabaseName, deleteStmt: deleteStmt}, nil
+}
+
+func (ccor correlateDelete) Run(event common.MapStr) (common.MapStr, error) {
+	fieldKey, ok := event[ccor.fieldKey]
+	if !ok {
+		return event, nil
+	}
+	_, err := ccor.deleteStmt.Exec(fieldKey)
+
+	if err != nil {
+		logp.Warn("Error deleting item", err)
+	}
+
+	return event, err
+
+}
+
+func (ccor correlateDelete) String() string {
+	return "correlateDelete database=" + ccor.databaseName + " field_key=" + ccor.fieldKey
 }
