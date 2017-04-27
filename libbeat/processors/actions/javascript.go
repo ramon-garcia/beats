@@ -19,12 +19,12 @@ func init() {
 	processors.RegisterPlugin("javascript",
 		configChecked(newJavascript,
 			requireFields("script"),
-			allowedFields("field", "when")))
+			allowedFields("script", "when")))
 }
 
 func newJavascript(c common.Config) (processors.Processor, error) {
 	var config struct {
-		script string `config:"script"`
+		Script string `config:"script"`
 	}
 	err := c.Unpack(&config)
 	if err != nil {
@@ -32,27 +32,23 @@ func newJavascript(c common.Config) (processors.Processor, error) {
 		return nil, fmt.Errorf("fail to unpack the javascript configuration: %s", err)
 	}
 	vm := otto.New()
-	scriptCompiled, err := vm.Compile("", config.script)
+	scriptCompiled, err := vm.Compile("", config.Script)
 	if err != nil {
 		logp.Warn("Error compiling javascript script")
 		return nil, fmt.Errorf("compiling javascript script: %s", err)
 	}
-	return javascript{vm, scriptCompiled, config.script}, nil
+	return javascript{vm, scriptCompiled, config.Script}, nil
 }
 
 func (j javascript) Run(event common.MapStr) (common.MapStr, error) {
-	object, _ := j.vm.Object(`{}`)
-	for k, v := range event {
-		object.Set(k, v)
-	}
-	j.vm.Set("event", object)
+	j.vm.Set("event", event)
 	j.vm.Run(j.script)
-	result := common.MapStr{}
-	for _, k := range object.Keys() {
-		value, _ := object.Get(k)
-		result[k], _ = value.ToString()
+	result, err := j.vm.Get("event")
+	if err != nil {
+		return nil, err
 	}
-	return result, nil
+	resultGo, err := result.Export()
+	return resultGo.(common.MapStr), err
 }
 
 func (j javascript) String() string {
