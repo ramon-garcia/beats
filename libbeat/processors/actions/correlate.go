@@ -1,5 +1,11 @@
 package actions
 
+// Processor that stores event data in a database, with a given field as key, that can be later retrieved by another event, if one of its fields matches the given key
+
+// Note: see libbeat/common/event.go function normalizeValue to understand the set of allowed types
+// int signed or not, and of several sizes; bool; string; float are allowed types in events.
+// they should be kept in that way in the database
+
 import (
 	"database/sql"
 	"fmt"
@@ -136,13 +142,25 @@ func sqlQuoteColumn(column string) string {
 }
 
 func (ccor correlateCreate) Run(event common.MapStr) (common.MapStr, error) {
-	key := event[ccor.fieldKey].(string)
+	keyX, err := event.GetValue(ccor.fieldKey)
+	if err != nil {
+		return event, nil
+	}
+	key := keyX.(string)
 	insertedValues := make([]interface{}, len(ccor.copiedFields)+1)
 	insertedValues[0] = key
 	for i := 1; i < len(ccor.copiedFields)+1; i++ {
-		insertedValues[i] = event[ccor.copiedFields[i-1]].(string)
+		field, err := event.GetValue(ccor.copiedFields[i-1])
+		if err != nil {
+			field = nil
+		}
+		var fields string
+		if field != nil {
+			fields = field.(string)
+		}
+		insertedValues[i] = fields
 	}
-	_, err := ccor.insertStmt.Exec(insertedValues...)
+	_, err = ccor.insertStmt.Exec(insertedValues...)
 	if err != nil {
 		logp.Warn("Error inserting value for key %s to correlation table: %s", key, err)
 	}
@@ -200,8 +218,8 @@ func newCorrelateUse(c common.Config) (processors.Processor, error) {
 }
 
 func (ccor correlateUse) Run(event common.MapStr) (common.MapStr, error) {
-	fieldKey, ok := event[ccor.fieldKey]
-	if !ok {
+	fieldKey, err := event.GetValue(ccor.fieldKey)
+	if err != nil {
 		return event, nil
 	}
 	rows, err := ccor.queryStmt.Query(fieldKey)
@@ -239,15 +257,10 @@ func (ccor correlateUse) Run(event common.MapStr) (common.MapStr, error) {
 			continue
 		}
 		if ccor.nestedField == "" {
-			event[name] = data
+			event.Put(name, data)
 		} else {
-			nestedFieldR, ok := event[ccor.nestedField]
-			nestedField := nestedFieldR.(common.MapStr)
-			if !ok {
-				nestedField = make(common.MapStr)
-				event[ccor.nestedField] = nestedField
-			}
-			nestedField[name] = data
+			nestedName := strings.Join([]string{ccor.nestedField, name}, ".")
+			event.Put(nestedName, data)
 		}
 	}
 	return event, nil
@@ -294,11 +307,11 @@ func newCorrelateDelete(c common.Config) (processors.Processor, error) {
 }
 
 func (ccor correlateDelete) Run(event common.MapStr) (common.MapStr, error) {
-	fieldKey, ok := event[ccor.fieldKey]
-	if !ok {
+	fieldKey, err := event.GetValue(ccor.fieldKey)
+	if err != nil {
 		return event, nil
 	}
-	_, err := ccor.deleteStmt.Exec(fieldKey)
+	_, err = ccor.deleteStmt.Exec(fieldKey)
 
 	if err != nil {
 		logp.Warn("Error deleting item", err)
