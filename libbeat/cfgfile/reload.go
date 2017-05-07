@@ -1,33 +1,39 @@
 package cfgfile
 
 import (
-	"expvar"
 	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/elastic/beats/libbeat/common"
 	"github.com/elastic/beats/libbeat/logp"
+	"github.com/elastic/beats/libbeat/monitoring"
 	"github.com/elastic/beats/libbeat/paths"
 )
 
 var (
 	DefaultReloadConfig = ReloadConfig{
-		Period:  10 * time.Second,
-		Enabled: false,
+		Reload: Reload{
+			Period:  10 * time.Second,
+			Enabled: false,
+		},
 	}
 
 	debugf = logp.MakeDebug("cfgfile")
 
-	configReloads = expvar.NewInt("libbeat.config.reloads")
-	moduleStarts  = expvar.NewInt("libbeat.config.module.starts")
-	moduleStops   = expvar.NewInt("libbeat.config.module.stops")
-	moduleRunning = expvar.NewInt("libbeat.config.module.running")
+	configReloads = monitoring.NewInt(nil, "libbeat.config.reloads")
+	moduleStarts  = monitoring.NewInt(nil, "libbeat.config.module.starts")
+	moduleStops   = monitoring.NewInt(nil, "libbeat.config.module.stops")
+	moduleRunning = monitoring.NewInt(nil, "libbeat.config.module.running")
 )
 
 type ReloadConfig struct {
 	// If path is a relative path, it is relative to the ${path.config}
-	Path    string        `config:"path"`
+	Path   string `config:"path"`
+	Reload Reload `config:"reload"`
+}
+
+type Reload struct {
 	Period  time.Duration `config:"period"`
 	Enabled bool          `config:"enabled"`
 }
@@ -81,12 +87,17 @@ func (rl *Reloader) Run(runnerFactory RunnerFactory) {
 
 	gw := NewGlobWatcher(path)
 
+	// If reloading is disable, config files should be loaded immidiately
+	if !rl.config.Reload.Enabled {
+		rl.config.Reload.Period = 0
+	}
+
 	for {
 		select {
 		case <-rl.done:
 			logp.Info("Dynamic config reloader stopped")
 			return
-		case <-time.After(rl.config.Period):
+		case <-time.After(rl.config.Reload.Period):
 
 			debugf("Scan for new config files")
 			configReloads.Add(1)
@@ -146,6 +157,16 @@ func (rl *Reloader) Run(runnerFactory RunnerFactory) {
 
 			rl.stopRunners(stopList)
 			rl.startRunners(startList)
+		}
+
+		// Path loading is enabled but not reloading. Loads files only once and then stops.
+		if !rl.config.Reload.Enabled {
+			logp.Info("Loading of config files completed.")
+			select {
+			case <-rl.done:
+				logp.Info("Dynamic config reloader stopped")
+				return
+			}
 		}
 	}
 }

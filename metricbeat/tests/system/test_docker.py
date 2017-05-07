@@ -15,7 +15,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["container"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s",
+            "period": "10s",
         }])
 
         proc = self.start_beat()
@@ -24,7 +24,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -41,7 +41,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["cpu"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s"
+            "period": "10s"
         }])
 
         proc = self.start_beat()
@@ -50,7 +50,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -71,7 +71,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["diskio"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s"
+            "period": "10s"
         }])
 
         proc = self.start_beat()
@@ -80,7 +80,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -98,7 +98,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["info"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s"
+            "period": "10s"
         }])
 
         proc = self.start_beat()
@@ -107,7 +107,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -123,7 +123,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["memory"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s"
+            "period": "10s"
         }])
 
         proc = self.start_beat()
@@ -132,7 +132,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -149,7 +149,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["network"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s"
+            "period": "10s"
         }])
 
         proc = self.start_beat()
@@ -158,7 +158,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -175,7 +175,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["healthcheck"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s",
+            "period": "10s",
         }])
 
         proc = self.start_beat()
@@ -184,7 +184,7 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
@@ -201,7 +201,7 @@ class Test(metricbeat.BaseTest):
             "name": "docker",
             "metricsets": ["image"],
             "hosts": ["unix:///var/run/docker.sock"],
-            "period": "1s",
+            "period": "10s",
         }])
 
         proc = self.start_beat()
@@ -210,15 +210,15 @@ class Test(metricbeat.BaseTest):
 
         # Ensure no errors or warnings exist in the log.
         log = self.get_log()
-        self.assertNotRegexpMatches(log.replace("WARN EXPERIMENTAL", ""), "ERR|WARN")
+        self.assertNotRegexpMatches(log.replace("WARN BETA", ""), "ERR|WARN")
 
         output = self.read_output_json()
         evt = output[0]
 
-        if 'tags' in evt["docker"]["image"] :
+        if 'tags' in evt["docker"]["image"]:
             del evt["docker"]["image"]["tags"]
 
-        if 'labels' in evt["docker"]["image"] :
+        if 'labels' in evt["docker"]["image"]:
             del evt["docker"]["image"]["labels"]
 
         self.assert_fields_are_documented(evt)

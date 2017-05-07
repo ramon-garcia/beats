@@ -1,5 +1,5 @@
 [[configuration-filebeat-options]]
-=== Filebeat Prospectors Configuration
+=== Filebeat Prospectors
 
 The `filebeat` section of the +{beatname_lc}.yml+ config file specifies a list of `prospectors` that Filebeat
 uses to locate and process log files. Each prospector item begins with a dash (-)
@@ -33,6 +33,7 @@ One of the following input types:
 
 The value that you specify here is used as the `input_type` for each event published to Logstash and Elasticsearch.
 
+[[prospector-paths]]
 ===== paths
 
 A list of glob-based paths that should be crawled and fetched. All patterns
@@ -40,11 +41,21 @@ supported by https://golang.org/pkg/path/filepath/#Glob[Golang Glob] are also
 supported here. For example, to fetch all files from a predefined level of
 subdirectories, the following pattern can be used: `/var/log/*/*.log`. This
 fetches all `.log` files from the subfolders of `/var/log`. It does not
-fetch log files from the `/var/log` folder itself. Currently it is not possible
-to recursively fetch all files in all subdirectories of a directory.
+fetch log files from the `/var/log` folder itself.
+It is possible to recursively fetch all files in all subdirectories of a directory
+using the optional <<recursive_glob>> settings.
 
 Filebeat starts a harvester for each file that it finds under the specified
 paths. You can specify one path per line. Each line begins with a dash (-).
+
+[[recursive_glob]]
+===== recursive_glob
+
+*`enabled`*:: Enable expanding `**` into recursive glob patterns. With this feature enabled,
+the rightmost `**` in each path is expanded into a fixed
+number of glob patterns. For example: `/foo/**` expands to `/foo`, `/foo/*`,
+`/foo/*/*`, and so on. The feature is disabled by default, and if enabled it expands a single `**`
+into a 8-level deep `*` pattern.
 
 ===== encoding
 
@@ -272,13 +283,11 @@ NOTE: Every time a file is renamed, the file state is updated and the counter fo
 [[clean-removed]]
 ===== clean_removed
 
-When this option is enabled, Filebeat cleans files from the registry if they cannot be found on disk anymore. This setting does not apply to renamed files or files that were moved to another directory that is still visible to Filebeat. This option is enabled by default.
-
+When this option is enabled, Filebeat cleans files from the registry if they cannot be found on disk anymore under the last known name. This means also files which were renamed after the harvester was finished will be removed. This option is enabled by default.
 
 If a shared drive disappears for a short period and appears again, all files will be read again from the beginning because the states were removed from the registry file. In such cases, we recommend that you disable the `clean_removed` option.
 
 You must disable this option if you also disable `close_removed`.
-
 
 [[scan-frequency]]
 ===== scan_frequency
@@ -293,6 +302,7 @@ If you require log lines to be sent in near real time do not use a very low `sca
 
 The default setting is 10s.
 
+[[filebeat-document-type]]
 ===== document_type
 
 The event type to use for published lines read by harvesters. For Elasticsearch
@@ -345,6 +355,10 @@ occur.
 
 [[multiline]]
 ===== multiline
+
+IMPORTANT: If you are sending multiline events to Logstash, use the options described here to handle multiline events
+before sending the event data to Logstash. Trying to implement multiline event handling in Logstash (for example, by
+using the Logstash multiline codec) may result in the mixing of streams and corrupted data.
 
 Options that control how Filebeat deals with log messages that span multiple lines. Multiline messages are common in files that contain Java stack traces.
 
@@ -415,8 +429,6 @@ NOTE: The pipeline ID can also be configured in the Elasticsearch output, but th
 
 ===== symlinks
 
-experimental[]
-
 The `symlinks` option allows Filebeat to harvest symlinks in addition to regular files. When harvesting symlinks, Filebeat opens and reads the original file even though it reports the path of the symlink.
 
 When you configure a symlink for harvesting, make sure the original path is excluded. If a single prospector is configured to harvest both the symlink and the original file, the prospector will detect the problem and only process the first file it finds. However, if two different prospectors are configured (one to read the symlink and the other the original path), both paths will be harvested, causing Filebeat to send duplicate data and the prospectors to overwrite each other's state.
@@ -457,8 +469,6 @@ lines. The `backoff` value will be multiplied each time with the `backoff_factor
 [[harvester-limit]]
 ===== harvester_limit
 
-experimental[]
-
 The `harvester_limit` option limits the number of harvesters that are started in parallel for one prospector. This directly relates
 to the maximum number of file handlers that are opened. The default for `harvester_limit` is 0, which means there is no limit. This
 configuration is useful if the number of files to be harvested exceeds the open file handler limit of the operating system.
@@ -477,7 +487,7 @@ by assigning a higher limit of harvesters.
 The `enabled` option can be used with each prospector to define if a prospector is enabled or not. By default, enabled is set to true.
 
 [[configuration-global-options]]
-=== Filebeat Global Configuration
+=== Filebeat Global
 
 You can specify configuration options in the +{beatname_lc}.yml+ config file to control Filebeat behavior at a global level.
 
@@ -498,6 +508,7 @@ See <<load-balancing>> for more information about how this setting affects load 
 ===== publish_async
 
 experimental[]
+deprecated[5.3.0]
 
 If enabled, the publisher pipeline in Filebeat operates in async mode preparing
 a new batch of lines while waiting for ACK. This option can improve load-balancing
@@ -590,4 +601,3 @@ include::../../../../libbeat/docs/dashboardsconfig.asciidoc[]
 include::../../../../libbeat/docs/loggingconfig.asciidoc[]
 
 include::../../../../libbeat/docs/processors-config.asciidoc[]
-

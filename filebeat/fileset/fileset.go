@@ -78,6 +78,16 @@ type manifest struct {
 	Vars           []map[string]interface{} `config:"var"`
 	IngestPipeline string                   `config:"ingest_pipeline"`
 	Prospector     string                   `config:"prospector"`
+	Requires       struct {
+		Processors []ProcessorRequirement `config:"processors"`
+	} `config:"requires"`
+}
+
+// ProcessorRequirement represents the declaration of a dependency to a particular
+// Ingest Node processor / plugin.
+type ProcessorRequirement struct {
+	Name   string `config:"name"`
+	Plugin string `config:"plugin"`
 }
 
 // readManifest reads the manifest file of the fileset.
@@ -235,6 +245,16 @@ func (fs *Fileset) getProspectorConfig() (*common.Config, error) {
 		return nil, fmt.Errorf("Error setting the pipeline ID in the prospector config: %v", err)
 	}
 
+	// force our the module/fileset name
+	err = cfg.SetString("_module_name", -1, fs.mcfg.Module)
+	if err != nil {
+		return nil, fmt.Errorf("Error setting the _module_name cfg in the prospector config: %v", err)
+	}
+	err = cfg.SetString("_fileset_name", -1, fs.name)
+	if err != nil {
+		return nil, fmt.Errorf("Error setting the _fileset_name cfg in the prospector config: %v", err)
+	}
+
 	cfg.PrintDebugf("Merged prospector config for fileset %s/%s", fs.mcfg.Module, fs.name)
 
 	return cfg, nil
@@ -283,4 +303,10 @@ func removeExt(path string) string {
 		}
 	}
 	return path
+}
+
+// GetRequiredProcessors returns the list of processors on which this
+// fileset depends.
+func (fs *Fileset) GetRequiredProcessors() []ProcessorRequirement {
+	return fs.manifest.Requires.Processors
 }

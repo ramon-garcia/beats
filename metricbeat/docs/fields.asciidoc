@@ -19,8 +19,16 @@ grouped in the following categories:
 * <<exported-fields-common>>
 * <<exported-fields-couchbase>>
 * <<exported-fields-docker>>
+* <<exported-fields-dropwizard>>
+* <<exported-fields-elasticsearch>>
+* <<exported-fields-golang>>
 * <<exported-fields-haproxy>>
+* <<exported-fields-jolokia>>
 * <<exported-fields-kafka>>
+* <<exported-fields-kibana>>
+* <<exported-fields-kubelet>>
+* <<exported-fields-kubernetes>>
+* <<exported-fields-memcached>>
 * <<exported-fields-mongodb>>
 * <<exported-fields-mysql>>
 * <<exported-fields-nginx>>
@@ -29,6 +37,7 @@ grouped in the following categories:
 * <<exported-fields-prometheus>>
 * <<exported-fields-redis>>
 * <<exported-fields-system>>
+* <<exported-fields-windows>>
 * <<exported-fields-zookeeper>>
 
 --
@@ -380,6 +389,12 @@ The hostname as returned by the operating system on which the Beat is running.
 
 
 [float]
+=== beat.timezone
+
+The timezone as returned by the operating system on which the Beat is running.
+
+
+[float]
 === beat.version
 
 The version of the beat that generated this event.
@@ -408,15 +423,47 @@ Arbitrary tags that can be set per Beat and per transaction type.
 [float]
 === fields
 
-type: dict
+type: object
 
 Contains user configurable fields.
+
+
+[float]
+== error Fields
+
+Error fields containing additional info in case of errors.
+
+
+
+[float]
+=== error.message
+
+type: text
+
+Error message.
+
+
+[float]
+=== error.code
+
+type: long
+
+Error code.
+
+
+[float]
+=== error.type
+
+type: keyword
+
+Error type.
 
 
 [[exported-fields-ceph]]
 == ceph Fields
 
-experimental[] ceph Module
+beta[]
+ceph Module
 
 
 
@@ -425,6 +472,43 @@ experimental[] ceph Module
 
 `ceph` contains the metrics that were scraped from CEPH.
 
+
+
+[float]
+== cluster_disk Fields
+
+cluster_disk
+
+
+
+[float]
+=== ceph.cluster_disk.available.bytes
+
+type: long
+
+format: bytes
+
+Available bytes of the cluster
+
+
+[float]
+=== ceph.cluster_disk.total.bytes
+
+type: long
+
+format: bytes
+
+Total bytes of the cluster
+
+
+[float]
+=== ceph.cluster_disk.used.bytes
+
+type: long
+
+format: bytes
+
+Used bytes of the cluster
 
 
 [float]
@@ -577,6 +661,65 @@ type: long
 Last updated
 
 
+[float]
+== pool_disk Fields
+
+pool_disk
+
+
+
+[float]
+=== ceph.pool_disk.id
+
+type: long
+
+Id of the pool
+
+
+[float]
+=== ceph.pool_disk.name
+
+type: keyword
+
+Name of the pool
+
+
+[float]
+=== ceph.pool_disk.stats.available.bytes
+
+type: long
+
+format: bytes
+
+Available bytes of the pool
+
+
+[float]
+=== ceph.pool_disk.stats.objects
+
+type: long
+
+Number of objects of the pool
+
+
+[float]
+=== ceph.pool_disk.stats.used.bytes
+
+type: long
+
+format: bytes
+
+Used bytes of the pool
+
+
+[float]
+=== ceph.pool_disk.stats.used.kb
+
+type: long
+
+Used kb of the pool
+
+
 [[exported-fields-cloud]]
 == Cloud Provider Metadata Fields
 
@@ -682,10 +825,10 @@ The document type. Always set to "metricsets".
 
 
 [[exported-fields-couchbase]]
-== couchbase Fields
+== Couchbase Fields
 
-experimental[]
-couchbase Module
+beta[]
+Metrics collected from Couchbase servers.
 
 
 
@@ -699,8 +842,7 @@ couchbase Module
 [float]
 == bucket Fields
 
-experimental[]
-Couchbase bucket metrics
+Couchbase bucket metrics.
 
 
 
@@ -709,7 +851,7 @@ Couchbase bucket metrics
 
 type: keyword
 
-name of the bucket
+Name of the bucket.
 
 
 [float]
@@ -717,7 +859,7 @@ name of the bucket
 
 type: keyword
 
-type of the bucket
+Type of the bucket.
 
 
 [float]
@@ -735,7 +877,7 @@ Size of user data within buckets of the specified state that are resident in RAM
 
 type: long
 
-Number of disk fetches
+Number of disk fetches.
 
 
 [float]
@@ -745,7 +887,7 @@ type: long
 
 format: bytes
 
-Amount of disk used (bytes)
+Amount of disk used (bytes).
 
 
 [float]
@@ -755,7 +897,7 @@ type: long
 
 format: bytes
 
-Amount of memory used by the bucket (bytes)
+Amount of memory used by the bucket (bytes).
 
 
 [float]
@@ -765,7 +907,7 @@ type: long
 
 format: bytes
 
-Amount of RAM used by the bucket (bytes)
+Amount of RAM used by the bucket (bytes).
 
 
 [float]
@@ -775,7 +917,7 @@ type: scaled_float
 
 format: percent
 
-Percentage of RAM used (for active objects) against the configure bucket size.(%)
+Percentage of RAM used (for active objects) against the configured bucket size (%).
 
 
 [float]
@@ -783,7 +925,7 @@ Percentage of RAM used (for active objects) against the configure bucket size.(%
 
 type: long
 
-Number of operations per second
+Number of operations per second.
 
 
 [float]
@@ -791,14 +933,13 @@ Number of operations per second
 
 type: long
 
-Number of items associated with the bucket
+Number of items associated with the bucket.
 
 
 [float]
 == cluster Fields
 
-experimental[]
-Couchbase Cluster metrics
+Couchbase cluster metrics.
 
 
 
@@ -809,7 +950,7 @@ type: long
 
 format: bytes
 
-Free harddrive space in the cluster (bytes)
+Free hard drive space in the cluster (bytes).
 
 
 [float]
@@ -819,7 +960,7 @@ type: long
 
 format: bytes
 
-Harddrive quota total for the cluster (bytes)
+Hard drive quota total for the cluster (bytes).
 
 
 [float]
@@ -829,7 +970,7 @@ type: long
 
 format: bytes
 
-Total harddrive space available to cluster (bytes)
+Total hard drive space available to the cluster (bytes).
 
 
 [float]
@@ -839,7 +980,7 @@ type: long
 
 format: bytes
 
-Harddrive space used by the cluster (bytes)
+Hard drive space used by the cluster (bytes).
 
 
 [float]
@@ -849,7 +990,7 @@ type: long
 
 format: bytes
 
-Harddrive use by the data in the cluster(bytes)
+Hard drive space used by the data in the cluster (bytes).
 
 
 [float]
@@ -857,7 +998,7 @@ Harddrive use by the data in the cluster(bytes)
 
 type: long
 
-Setting of Max Bucket Count
+Max bucket count setting.
 
 
 [float]
@@ -865,7 +1006,7 @@ Setting of Max Bucket Count
 
 type: long
 
-Setting of Memory quota for the Index service (Mbyte)
+Memory quota setting for the Index service (Mbyte).
 
 
 [float]
@@ -873,7 +1014,7 @@ Setting of Memory quota for the Index service (Mbyte)
 
 type: long
 
-Setting of Memory quota for the cluster (Mbyte)
+Memory quota setting for the cluster (Mbyte).
 
 
 [float]
@@ -883,7 +1024,7 @@ type: long
 
 format: bytes
 
-Ram quota total for the cluster (bytes)
+RAM quota total for the cluster (bytes).
 
 
 [float]
@@ -893,7 +1034,7 @@ type: long
 
 format: bytes
 
-Ram quota used by the current node in the cluster (bytes)
+RAM quota used by the current node in the cluster (bytes).
 
 
 [float]
@@ -903,7 +1044,7 @@ type: long
 
 format: bytes
 
-Ram quota used by the cluster (bytes)
+RAM quota used by the cluster (bytes).
 
 
 [float]
@@ -923,7 +1064,7 @@ type: long
 
 format: bytes
 
-Total ram available to cluster (bytes)
+Total RAM available to cluster (bytes).
 
 
 [float]
@@ -933,7 +1074,7 @@ type: long
 
 format: bytes
 
-Ram used by the cluster (bytes)
+RAM used by the cluster (bytes).
 
 
 [float]
@@ -943,14 +1084,13 @@ type: long
 
 format: bytes
 
-Ram used by the data in the cluster (bytes)
+RAM used by the data in the cluster (bytes).
 
 
 [float]
 == node Fields
 
-experimental[]
-Couchbase node metrics
+Couchbase node metrics.
 
 
 
@@ -963,13 +1103,13 @@ Number of get commands
 
 
 [float]
-=== couchbase.node.couch.docs.actual_disk_size.bytes
+=== couchbase.node.couch.docs.disk_size.bytes
 
 type: long
 
 format: bytes
 
-Amount of disk space used by Couch docs.(bytes)
+Amount of disk space used by Couch docs (bytes).
 
 
 [float]
@@ -979,7 +1119,7 @@ type: long
 
 format: bytes
 
-Data size of couch documents associated with a node (bytes)
+Data size of Couch docs associated with a node (bytes).
 
 
 [float]
@@ -987,7 +1127,7 @@ Data size of couch documents associated with a node (bytes)
 
 type: long
 
-couchSpatialDataSize field
+Size of object data for spatial views (bytes).
 
 
 [float]
@@ -995,15 +1135,15 @@ couchSpatialDataSize field
 
 type: long
 
-couchSpatialDiskSize field
+Amount of disk space used by spatial views (bytes).
 
 
 [float]
-=== couchbase.node.couch.views.actual_disk_size.bytes
+=== couchbase.node.couch.views.disk_size.bytes
 
 type: long
 
-Amount of disk space occupied by Couch views (bytes)
+Amount of disk space used by Couch views (bytes).
 
 
 [float]
@@ -1011,7 +1151,7 @@ Amount of disk space occupied by Couch views (bytes)
 
 type: long
 
-Size of object data for Couch views (bytes)
+Size of object data for Couch views (bytes).
 
 
 [float]
@@ -1019,7 +1159,7 @@ Size of object data for Couch views (bytes)
 
 type: scaled_float
 
-The CPU utilization rate (%)
+The CPU utilization rate (%).
 
 
 [float]
@@ -1027,7 +1167,7 @@ The CPU utilization rate (%)
 
 type: long
 
-Number of current items
+Number of current items.
 
 
 [float]
@@ -1035,7 +1175,7 @@ Number of current items
 
 type: long
 
-Total number of items associated with node
+Total number of items associated with the node.
 
 
 [float]
@@ -1043,7 +1183,7 @@ Total number of items associated with node
 
 type: long
 
-Number of disk fetches performed since server was started
+Number of disk fetches performed since the server was started.
 
 
 [float]
@@ -1051,7 +1191,7 @@ Number of disk fetches performed since server was started
 
 type: long
 
-Number of get hits
+Number of get hits.
 
 
 [float]
@@ -1059,7 +1199,7 @@ Number of get hits
 
 type: keyword
 
-The hostname of the Node
+The hostname of the node.
 
 
 [float]
@@ -1069,7 +1209,7 @@ type: long
 
 format: bytes
 
-Amount of memcached memory allocated (bytes)
+Amount of memcached memory allocated (bytes).
 
 
 [float]
@@ -1077,7 +1217,7 @@ Amount of memcached memory allocated (bytes)
 
 type: long
 
-Amount of memcached memory reserved (bytes)
+Amount of memcached memory reserved (bytes).
 
 
 [float]
@@ -1085,7 +1225,7 @@ Amount of memcached memory reserved (bytes)
 
 type: long
 
-Amount of memory free for the node (bytes)
+Amount of memory free for the node (bytes).
 
 
 [float]
@@ -1093,7 +1233,7 @@ Amount of memory free for the node (bytes)
 
 type: long
 
-Total memory available to the node (bytes)
+Total memory available to the node (bytes).
 
 
 [float]
@@ -1101,7 +1241,7 @@ Total memory available to the node (bytes)
 
 type: long
 
-Memory used by the node (bytes)
+Memory used by the node (bytes).
 
 
 [float]
@@ -1109,7 +1249,7 @@ Memory used by the node (bytes)
 
 type: long
 
-Number of operations performed on Couchbase
+Number of operations performed on Couchbase.
 
 
 [float]
@@ -1117,7 +1257,7 @@ Number of operations performed on Couchbase
 
 type: long
 
-Total swap size allocated (bytes)
+Total swap size allocated (bytes).
 
 
 [float]
@@ -1125,7 +1265,7 @@ Total swap size allocated (bytes)
 
 type: long
 
-Amount of swap space used.(bytes)
+Amount of swap space used (bytes).
 
 
 [float]
@@ -1133,7 +1273,7 @@ Amount of swap space used.(bytes)
 
 type: long
 
-Time during which the node was in operation (sec)
+Time during which the node was in operation (sec).
 
 
 [float]
@@ -1141,13 +1281,13 @@ Time during which the node was in operation (sec)
 
 type: long
 
-Number of items/documents that are replicas
+Number of items/documents that are replicas.
 
 
 [[exported-fields-docker]]
 == Docker Fields
 
-experimental[]
+beta[]
 Docker stats collected from Docker.
 
 
@@ -1235,6 +1375,22 @@ Total size of all the files in the container.
 type: long
 
 Size of the files that have been created or changed since creation.
+
+
+[float]
+=== docker.container.labels
+
+type: object
+
+Image labels.
+
+
+[float]
+=== docker.container.tags
+
+type: array
+
+Image tags.
 
 
 [float]
@@ -1461,9 +1617,25 @@ Total size of the all cached images associated to the current image.
 
 
 [float]
+=== docker.image.labels
+
+type: object
+
+Image labels.
+
+
+[float]
+=== docker.image.tags
+
+type: array
+
+Image tags.
+
+
+[float]
 == info Fields
 
-experimental[]
+beta[]
 Info metrics based on https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#/display-system-wide-information.
 
 
@@ -1705,10 +1877,603 @@ type: long
 Total number of outgoing packets.
 
 
+[[exported-fields-dropwizard]]
+== Dropwizard Fields
+
+beta[]
+Stats collected from Dropwizard.
+
+
+
+[float]
+== dropwizard Fields
+
+
+
+[[exported-fields-elasticsearch]]
+== elasticsearch Fields
+
+[]experimental
+elasticsearch Module
+
+
+
+[float]
+== elasticsearch Fields
+
+
+
+
+[float]
+=== elasticsearch.cluster.name
+
+type: keyword
+
+Elasticsearch cluster name.
+
+
+[float]
+== node Fields
+
+node
+
+
+
+[float]
+=== elasticsearch.node.jvm.memory.heap_init.bytes
+
+type: long
+
+format: bytes
+
+Heap init used by the JVM in bytes.
+
+
+[float]
+=== elasticsearch.node.jvm.version
+
+type: keyword
+
+JVM version.
+
+
+[float]
+=== elasticsearch.node.name
+
+type: keyword
+
+Node name.
+
+
+[float]
+=== elasticsearch.node.version
+
+type: keyword
+
+Node version.
+
+
+[float]
+== node_stats Fields
+
+node_stats
+
+
+
+[float]
+=== elasticsearch.node_stats.name
+
+type: keyword
+
+Node name.
+
+
+[float]
+== indices Fields
+
+Node indices stats
+
+
+
+[float]
+=== elasticsearch.node_stats.indices.docs.count
+
+type: long
+
+Total number of existing documents.
+
+
+[float]
+=== elasticsearch.node_stats.indices.docs.deleted
+
+type: long
+
+Total number of deleted documents.
+
+
+[float]
+=== elasticsearch.node_stats.indices.segments.count
+
+type: long
+
+Total number of segments.
+
+
+[float]
+=== elasticsearch.node_stats.indices.segments.memory.bytes
+
+type: long
+
+format: bytes
+
+Total size of segments in bytes.
+
+
+[float]
+=== elasticsearch.node_stats.indices.store.size.bytes
+
+type: long
+
+Total size of the store in bytes.
+
+
+[float]
+== jvm.mem.pools Fields
+
+JVM memory pool stats
+
+
+
+[float]
+== old Fields
+
+Old memory pool stats.
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.old.max.bytes
+
+type: long
+
+format: bytes
+
+Max bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.old.peak.bytes
+
+type: long
+
+format: bytes
+
+Peak bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.old.peak_max.bytes
+
+type: long
+
+format: bytes
+
+Peak max bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.old.used.bytes
+
+type: long
+
+format: bytes
+
+Used bytes.
+
+[float]
+== young Fields
+
+Young memory pool stats.
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.young.max.bytes
+
+type: long
+
+format: bytes
+
+Max bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.young.peak.bytes
+
+type: long
+
+format: bytes
+
+Peak bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.young.peak_max.bytes
+
+type: long
+
+format: bytes
+
+Peak max bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.young.used.bytes
+
+type: long
+
+format: bytes
+
+Used bytes.
+
+[float]
+== survivor Fields
+
+Survivor memory pool stats.
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.survivor.max.bytes
+
+type: long
+
+format: bytes
+
+Max bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.survivor.peak.bytes
+
+type: long
+
+format: bytes
+
+Peak bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.survivor.peak_max.bytes
+
+type: long
+
+format: bytes
+
+Peak max bytes.
+
+[float]
+=== elasticsearch.node_stats.jvm.mem.pools.survivor.used.bytes
+
+type: long
+
+format: bytes
+
+Used bytes.
+
+[float]
+== jvm.gc.collectors Fields
+
+GC collector stats.
+
+
+
+[float]
+== old.collection Fields
+
+Old collection gc.
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.gc.collectors.old.collection.count
+
+type: long
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.gc.collectors.old.collection.ms
+
+type: long
+
+
+
+[float]
+== young.collection Fields
+
+Young collection gc.
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.gc.collectors.young.collection.count
+
+type: long
+
+
+
+[float]
+=== elasticsearch.node_stats.jvm.gc.collectors.young.collection.ms
+
+type: long
+
+
+
+[[exported-fields-golang]]
+== golang Fields
+
+golang Module
+
+
+
+[float]
+== golang Fields
+
+
+
+
+[float]
+== expvar Fields
+
+expvar
+
+
+
+[float]
+=== golang.expvar.cmdline
+
+type: keyword
+
+The cmdline of this golang program start with.
+
+
+[float]
+== heap Fields
+
+The golang program heap information exposed by expvar.
+
+
+
+[float]
+=== golang.heap.cmdline
+
+type: keyword
+
+The cmdline of this golang program start with.
+
+
+[float]
+== gc Fields
+
+Garbage collector summary.
+
+
+
+[float]
+== total_pause Fields
+
+Total GC pause duration over lifetime of process.
+
+
+
+[float]
+=== golang.heap.gc.total_pause.ns
+
+type: long
+
+Duration in Ns.
+
+
+[float]
+=== golang.heap.gc.total_count
+
+type: long
+
+Total number of GC was happened.
+
+
+[float]
+=== golang.heap.gc.next_gc_limit
+
+type: long
+
+format: bytes
+
+Next collection will happen when HeapAlloc > this amount.
+
+
+[float]
+=== golang.heap.gc.cpu_fraction
+
+type: long
+
+Fraction of CPU time used by GC.
+
+
+[float]
+== pause Fields
+
+Last GC pause durations during the monitoring period.
+
+
+
+[float]
+=== golang.heap.gc.pause.count
+
+type: long
+
+Count of GC pause duration during this collect period.
+
+
+[float]
+== sum Fields
+
+Total GC pause duration during this collect period.
+
+
+
+[float]
+=== golang.heap.gc.pause.sum.ns
+
+type: long
+
+Duration in Ns.
+
+
+[float]
+== max Fields
+
+Max GC pause duration during this collect period.
+
+
+
+[float]
+=== golang.heap.gc.pause.max.ns
+
+type: long
+
+Duration in Ns.
+
+
+[float]
+== avg Fields
+
+Average GC pause duration during this collect period.
+
+
+
+[float]
+=== golang.heap.gc.pause.avg.ns
+
+type: long
+
+Duration in Ns.
+
+
+[float]
+== system Fields
+
+Heap summary,which bytes was obtained from system.
+
+
+
+[float]
+=== golang.heap.system.total
+
+type: long
+
+format: bytes
+
+Total bytes obtained from system (sum of XxxSys below).
+
+
+[float]
+=== golang.heap.system.optained
+
+type: long
+
+format: bytes
+
+Via HeapSys, bytes obtained from system. heap_sys = heap_idle + heap_inuse.
+
+
+[float]
+=== golang.heap.system.stack
+
+type: long
+
+format: bytes
+
+Bytes used by stack allocator, and these bytes was obtained from system.
+
+
+[float]
+=== golang.heap.system.released
+
+type: long
+
+format: bytes
+
+Bytes released to the OS.
+
+
+[float]
+== allocations Fields
+
+Heap allocations summary.
+
+
+
+[float]
+=== golang.heap.allocations.mallocs
+
+type: long
+
+Number of mallocs.
+
+
+[float]
+=== golang.heap.allocations.frees
+
+type: long
+
+Number of frees.
+
+
+[float]
+=== golang.heap.allocations.objects
+
+type: long
+
+Total number of allocated objects.
+
+
+[float]
+=== golang.heap.allocations.total
+
+type: long
+
+format: bytes
+
+Bytes allocated (even if freed) throughout the lifetime.
+
+
+[float]
+=== golang.heap.allocations.allocated
+
+type: long
+
+format: bytes
+
+Bytes allocated and not yet freed (same as Alloc above).
+
+
+[float]
+=== golang.heap.allocations.idle
+
+type: long
+
+format: bytes
+
+Bytes in idle spans.
+
+
+[float]
+=== golang.heap.allocations.active
+
+type: long
+
+format: bytes
+
+Bytes in non-idle span.
+
+
 [[exported-fields-haproxy]]
 == HAProxy Fields
 
-experimental[]
 HAProxy Module
 
 
@@ -2679,11 +3444,25 @@ type: integer
 The average queue time in ms over the last 1024 requests.
 
 
+[[exported-fields-jolokia]]
+== Jolokia Fields
+
+[]beta
+Jolokia Module
+
+
+
+[float]
+== jolokia Fields
+
+jolokia contains metrics exposed via jolokia agent
+
+
 [[exported-fields-kafka]]
 == kafka Fields
 
 kafka Module
-experimental[]
+beta[]
 
 
 
@@ -2850,7 +3629,7 @@ Leader id (broker).
 [float]
 === kafka.partition.partition.isr
 
-type: list
+type: array
 
 List of isr ids.
 
@@ -2909,6 +3688,944 @@ Broker id
 type: keyword
 
 Broker address
+
+
+[[exported-fields-kibana]]
+== kibana Fields
+
+[]experimental
+kibana Module
+
+
+
+[float]
+== kibana Fields
+
+
+
+
+[float]
+== status Fields
+
+Status fields
+
+
+
+[float]
+=== kibana.status.name
+
+type: keyword
+
+Kibana instance name.
+
+
+[float]
+=== kibana.status.uuid
+
+type: keyword
+
+Kibana instance uuid.
+
+
+[float]
+=== kibana.status.version.number
+
+type: keyword
+
+Kibana version number.
+
+
+[float]
+=== kibana.status.status.overall.state
+
+type: keyword
+
+Kibana overall state.
+
+
+[float]
+== metrics Fields
+
+Metrics fields
+
+
+
+[float]
+=== kibana.status.metrics.concurrent_connections
+
+type: long
+
+Current concurrent connections.
+
+
+[float]
+== requests Fields
+
+Request statistics.
+
+
+
+[float]
+=== kibana.status.metrics.requests.disconnects
+
+type: long
+
+Total number of disconnected connections.
+
+
+[float]
+=== kibana.status.metrics.requests.total
+
+type: long
+
+Total number of connections.
+
+
+[[exported-fields-kubelet]]
+== kubelet Fields
+
+beta[]
+kubelet metrics
+
+
+
+[float]
+== kubelet Fields
+
+Information and statistics of pods managed by kubelet.
+
+
+
+[float]
+== container Fields
+
+kubelet container metrics
+
+
+
+[float]
+=== kubelet.container.name
+
+type: keyword
+
+Container name
+
+
+[float]
+== cpu Fields
+
+CPU usage metrics
+
+
+
+
+
+[float]
+=== kubelet.container.cpu.usage.core.ns
+
+type: long
+
+Container CPU Core usage nanoseconds
+
+
+[float]
+=== kubelet.container.cpu.usage.nanocores
+
+type: long
+
+CPU used nanocores
+
+
+[float]
+== logs Fields
+
+Logs info
+
+
+
+
+[float]
+=== kubelet.container.logs.available.bytes
+
+type: long
+
+format: bytes
+
+Logs available capacity in bytes
+
+
+
+[float]
+=== kubelet.container.logs.capacity.bytes
+
+type: long
+
+format: bytes
+
+Logs total capacity in bytes
+
+
+
+[float]
+=== kubelet.container.logs.used.bytes
+
+type: long
+
+format: bytes
+
+Logs used capacity in bytes
+
+
+
+[float]
+=== kubelet.container.logs.inodes.count
+
+type: long
+
+Total available inodes
+
+
+[float]
+=== kubelet.container.logs.inodes.free
+
+type: long
+
+Total free inodes
+
+
+[float]
+=== kubelet.container.logs.inodes.used
+
+type: long
+
+Total used inodes
+
+
+
+
+[float]
+=== kubelet.container.memory.available.bytes
+
+type: long
+
+format: bytes
+
+Total available memory
+
+
+
+[float]
+=== kubelet.container.memory.usage.bytes
+
+type: long
+
+format: bytes
+
+Total memory usage
+
+
+
+[float]
+=== kubelet.container.memory.rss.bytes
+
+type: long
+
+format: bytes
+
+RSS memory usage
+
+
+
+[float]
+=== kubelet.container.memory.workingset.bytes
+
+type: long
+
+format: bytes
+
+Working set memory usage
+
+
+[float]
+=== kubelet.container.memory.pagefaults
+
+type: long
+
+Number of page faults
+
+
+[float]
+=== kubelet.container.memory.majorpagefaults
+
+type: long
+
+Number of major page faults
+
+
+
+
+[float]
+=== kubelet.container.rootfs.capacity.bytes
+
+type: long
+
+format: bytes
+
+Root filesystem total capacity in bytes
+
+
+
+[float]
+=== kubelet.container.rootfs.available.bytes
+
+type: long
+
+format: bytes
+
+Root filesystem total available in bytes
+
+
+
+[float]
+=== kubelet.container.rootfs.used.bytes
+
+type: long
+
+format: bytes
+
+Root filesystem total used in bytes
+
+
+
+[float]
+=== kubelet.container.rootfs.inodes.used
+
+type: long
+
+Used inodes
+
+
+[float]
+== node Fields
+
+kubelet node metrics
+
+
+
+[float]
+=== kubelet.node.name
+
+type: keyword
+
+Node name
+
+
+[float]
+== cpu Fields
+
+CPU usage metrics
+
+
+
+
+
+[float]
+=== kubelet.node.cpu.usage.core.ns
+
+type: long
+
+Node CPU Core usage nanoseconds
+
+
+[float]
+=== kubelet.node.cpu.usage.nanocores
+
+type: long
+
+CPU used nanocores
+
+
+
+
+[float]
+=== kubelet.node.memory.available.bytes
+
+type: long
+
+format: bytes
+
+Total available memory
+
+
+
+[float]
+=== kubelet.node.memory.usage.bytes
+
+type: long
+
+format: bytes
+
+Total memory usage
+
+
+
+[float]
+=== kubelet.node.memory.rss.bytes
+
+type: long
+
+format: bytes
+
+RSS memory usage
+
+
+
+[float]
+=== kubelet.node.memory.workingset.bytes
+
+type: long
+
+format: bytes
+
+Working set memory usage
+
+
+[float]
+=== kubelet.node.memory.pagefaults
+
+type: long
+
+Number of page faults
+
+
+[float]
+=== kubelet.node.memory.majorpagefaults
+
+type: long
+
+Number of major page faults
+
+
+
+
+[float]
+=== kubelet.node.network.rx.bytes
+
+type: long
+
+format: bytes
+
+Received bytes
+
+
+[float]
+=== kubelet.node.network.rx.errors
+
+type: long
+
+Rx errors
+
+
+
+[float]
+=== kubelet.node.network.tx.bytes
+
+type: long
+
+format: bytes
+
+Transmitted bytes
+
+
+[float]
+=== kubelet.node.network.tx.errors
+
+type: long
+
+Tx errors
+
+
+
+
+[float]
+=== kubelet.node.fs.capacity.bytes
+
+type: long
+
+format: bytes
+
+Filesystem total capacity in bytes
+
+
+
+[float]
+=== kubelet.node.fs.available.bytes
+
+type: long
+
+format: bytes
+
+Filesystem total available in bytes
+
+
+
+[float]
+=== kubelet.node.fs.used.bytes
+
+type: long
+
+format: bytes
+
+Filesystem total used in bytes
+
+
+
+
+
+[float]
+=== kubelet.node.runtime.imagefs.capacity.bytes
+
+type: long
+
+format: bytes
+
+Image filesystem total capacity in bytes
+
+
+
+[float]
+=== kubelet.node.runtime.imagefs.available.bytes
+
+type: long
+
+format: bytes
+
+Image filesystem total available in bytes
+
+
+
+[float]
+=== kubelet.node.runtime.imagefs.used.bytes
+
+type: long
+
+format: bytes
+
+Image filesystem total used in bytes
+
+
+[float]
+== pod Fields
+
+kubelet pod metrics
+
+
+
+[float]
+=== kubelet.pod.name
+
+type: keyword
+
+Pod name
+
+
+[float]
+=== kubelet.pod.namespace
+
+type: keyword
+
+Pod namespace
+
+
+[float]
+=== kubelet.pod.node
+
+type: keyword
+
+Pod node
+
+
+
+
+[float]
+=== kubelet.pod.network.rx.bytes
+
+type: long
+
+format: bytes
+
+Received bytes
+
+
+[float]
+=== kubelet.pod.network.rx.errors
+
+type: long
+
+Rx errors
+
+
+
+[float]
+=== kubelet.pod.network.tx.bytes
+
+type: long
+
+format: bytes
+
+Transmitted bytes
+
+
+[float]
+=== kubelet.pod.network.tx.errors
+
+type: long
+
+Tx errors
+
+
+[float]
+== system Fields
+
+kubelet system containers metrics
+
+
+
+[float]
+=== kubelet.system.container
+
+type: keyword
+
+Container name
+
+
+[float]
+== cpu Fields
+
+CPU usage metrics
+
+
+
+
+
+[float]
+=== kubelet.system.cpu.usage.core.ns
+
+type: long
+
+CPU Core usage nanoseconds
+
+
+[float]
+=== kubelet.system.cpu.usage.nanocores
+
+type: long
+
+CPU used nanocores
+
+
+
+
+[float]
+=== kubelet.system.memory.usage.bytes
+
+type: long
+
+format: bytes
+
+Total memory usage
+
+
+
+[float]
+=== kubelet.system.memory.rss.bytes
+
+type: long
+
+format: bytes
+
+RSS memory usage
+
+
+
+[float]
+=== kubelet.system.memory.workingset.bytes
+
+type: long
+
+format: bytes
+
+Working set memory usage
+
+
+[float]
+=== kubelet.system.memory.pagefaults
+
+type: long
+
+Number of page faults
+
+
+[float]
+=== kubelet.system.memory.majorpagefaults
+
+type: long
+
+Number of major page faults
+
+
+[float]
+== volume Fields
+
+kubelet volume metrics
+
+
+
+[float]
+=== kubelet.volume.name
+
+type: keyword
+
+Volume name
+
+
+
+
+[float]
+=== kubelet.volume.fs.capacity.bytes
+
+type: long
+
+format: bytes
+
+Filesystem total capacity in bytes
+
+
+
+[float]
+=== kubelet.volume.fs.available.bytes
+
+type: long
+
+format: bytes
+
+Filesystem total available in bytes
+
+
+
+[float]
+=== kubelet.volume.fs.used.bytes
+
+type: long
+
+format: bytes
+
+Filesystem total used in bytes
+
+
+
+[float]
+=== kubelet.volume.fs.inodes.used
+
+type: long
+
+Used inodes
+
+
+[float]
+=== kubelet.volume.fs.inodes.free
+
+type: long
+
+Free inodes
+
+
+[float]
+=== kubelet.volume.fs.inodes.count
+
+type: long
+
+Total inodes
+
+
+[[exported-fields-kubernetes]]
+== Kubernetes info Fields
+
+Kubernetes metadata added by the kubernetes processor
+
+
+
+[float]
+=== kubernetes.pod.name
+
+type: keyword
+
+Kubernetes pod name
+
+
+[float]
+=== kubernetes.namespace
+
+type: keyword
+
+Kubernetes namespace
+
+
+[float]
+=== kubernetes.labels
+
+type: object
+
+Kubernetes labels map
+
+
+[float]
+=== kubernetes.annotations
+
+type: object
+
+Kubernetes annotations map
+
+
+[float]
+=== kubernetes.container.name
+
+type: keyword
+
+Kubernetes container name
+
+
+[[exported-fields-memcached]]
+== memcached Fields
+
+[]beta
+memcached Module
+
+
+
+[float]
+== memcached Fields
+
+
+
+
+[float]
+== stats Fields
+
+stats
+
+
+
+[float]
+=== memcached.stats.pid
+
+type: long
+
+Current process ID of the Memcached task.
+
+
+[float]
+=== memcached.stats.uptime.sec
+
+type: long
+
+Memcached server uptime.
+
+
+[float]
+=== memcached.stats.threads
+
+type: long
+
+Number of threads used by the current Memcached server process.
+
+
+[float]
+=== memcached.stats.connections.current
+
+type: long
+
+Number of open connections to this Memcached server, should be the same value on all servers during normal operation.
+
+
+[float]
+=== memcached.stats.connections.total
+
+type: long
+
+Numer of successful connect attempts to this server since it has been started.
+
+
+[float]
+=== memcached.stats.get.hits
+
+type: long
+
+Number of successful "get" commands (cache hits) since startup, divide them by the "cmd_get" value to get the cache hitrate.
+
+
+[float]
+=== memcached.stats.get.misses
+
+type: long
+
+Number of failed "get" requests because nothing was cached for this key or the cached value was too old.
+
+
+[float]
+=== memcached.stats.cmd.get
+
+type: long
+
+Number of "get" commands received since server startup not counting if they were successful or not.
+
+
+[float]
+=== memcached.stats.cmd.set
+
+type: long
+
+Number of "set" commands serviced since startup.
+
+
+[float]
+=== memcached.stats.read.bytes
+
+type: long
+
+Total number of bytes received from the network by this server.
+
+
+[float]
+=== memcached.stats.written.bytes
+
+type: long
+
+Total number of bytes send to the network by this server.
+
+
+[float]
+=== memcached.stats.items.current
+
+type: long
+
+Number of items currently in this server's cache.
+
+
+[float]
+=== memcached.stats.items.total
+
+type: long
+
+Number of items stored ever stored on this server. This is no "maximum item count" value but a counted increased by every new item stored in the cache.
+
+
+[float]
+=== memcached.stats.evictions
+
+type: long
+
+Number of objects removed from the cache to free up memory for new items because Memcached reached it's maximum memory setting (limit_maxbytes).
 
 
 [[exported-fields-mongodb]]
@@ -4094,8 +5811,8 @@ The current number of idle client connections waiting for a request.
 [[exported-fields-php_fpm]]
 == php_fpm Fields
 
+beta[]
 PHP-FPM server status metrics collected from PHP-FPM.
-experimental[]
 
 
 
@@ -4579,8 +6296,8 @@ Time at which these statistics were last reset.
 [[exported-fields-prometheus]]
 == Prometheus Fields
 
-Prometheus Module
-experimental[]
+beta[]
+Stats collected from Prometheus.
 
 
 
@@ -4593,14 +6310,14 @@ experimental[]
 [float]
 == stats Fields
 
-stats
+Stats about the Prometheus server.
 
 
 
 [float]
 == notifications Fields
 
-Notification stats
+Notification stats.
 
 
 
@@ -4609,7 +6326,7 @@ Notification stats
 
 type: long
 
-Current queue length
+Current queue length.
 
 
 [float]
@@ -4617,7 +6334,7 @@ Current queue length
 
 type: long
 
-Dropped queue events
+Number of dropped queue events.
 
 
 [float]
@@ -4625,7 +6342,7 @@ Dropped queue events
 
 type: long
 
-Open file descriptors gauge
+Number of open file descriptors.
 
 
 [float]
@@ -4633,7 +6350,7 @@ Open file descriptors gauge
 
 type: long
 
-Gauge on chunks which are not persisted to disk yet
+Number of memory chunks that are not yet persisted to disk.
 
 
 [[exported-fields-redis]]
@@ -6171,9 +7888,17 @@ The username of the user that created the process. If the username cannot be det
 
 
 [float]
+=== system.process.cwd
+
+type: keyword
+
+The current working directory of the process. This field is only available on Linux.
+
+
+[float]
 === system.process.env
 
-type: dict
+type: object
 
 The environment variables used to start the process. The data is available on FreeBSD, Linux, and OS X.
 
@@ -6305,7 +8030,6 @@ The hard limit on the number of file descriptors opened by the process. The hard
 [float]
 == cgroup Fields
 
-experimental[]
 Metrics and limits from the cgroup of which the task is a member. cgroup metrics are reported when the process has membership in a non-root cgroup. These metrics are only available on Linux.
 
 
@@ -6458,7 +8182,7 @@ CPU time consumed by tasks in user (kernel) mode.
 [float]
 === system.process.cgroup.cpuacct.percpu
 
-type: dict
+type: object
 
 CPU time (in nanoseconds) consumed on each CPU by all tasks in this cgroup.
 
@@ -6965,6 +8689,18 @@ UID of the user running the process.
 type: keyword
 
 Name of the user running the process.
+
+
+[[exported-fields-windows]]
+== Windows Fields
+
+[]beta Module for Windows
+
+
+
+[float]
+== windows Fields
+
 
 
 [[exported-fields-zookeeper]]

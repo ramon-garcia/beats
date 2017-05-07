@@ -119,7 +119,7 @@ class Test(BaseTest):
             close_eof="true",
         )
 
-        args = [self.beat_path,
+        args = [self.test_binary,
                 "-systemTest",
                 "-test.coverprofile",
                 os.path.join(self.working_dir, "coverage.cov"),
@@ -276,14 +276,9 @@ class Test(BaseTest):
 
         filebeat = self.start_beat()
 
-        # wait for first  "Start next scan" log message
         self.wait_until(
             lambda: self.log_contains(
-                "No prospectors defined"),
-            max_timeout=10)
-
-        self.wait_until(
-            lambda: self.log_contains("No prospectors defined"),
+                "No modules or prospectors enabled"),
             max_timeout=10)
 
         filebeat.check_wait(exit_code=1)
@@ -632,3 +627,53 @@ class Test(BaseTest):
         assert len(data) == 3
 
         filebeat.check_kill_and_wait()
+
+    def test_prospector_filter_dropfields(self):
+        """
+        Check drop_fields filtering action at a prospector level
+        """
+        self.render_config_template(
+            path=os.path.abspath(self.working_dir) + "/test.log",
+            prospector_processors=[{
+                "drop_fields": {
+                    "fields": ["offset"],
+                },
+            }]
+        )
+        with open(self.working_dir + "/test.log", "w") as f:
+            f.write("test message\n")
+
+        filebeat = self.start_beat()
+        self.wait_until(lambda: self.output_has(lines=1))
+        filebeat.check_kill_and_wait()
+
+        output = self.read_output(
+            required_fields=["@timestamp", "type"],
+        )[0]
+        assert "offset" not in output
+        assert "message" in output
+
+    def test_prospector_filter_includefields(self):
+        """
+        Check include_fields filtering action at a prospector level
+        """
+        self.render_config_template(
+            path=os.path.abspath(self.working_dir) + "/test.log",
+            prospector_processors=[{
+                "include_fields": {
+                    "fields": ["offset"],
+                },
+            }]
+        )
+        with open(self.working_dir + "/test.log", "w") as f:
+            f.write("test message\n")
+
+        filebeat = self.start_beat()
+        self.wait_until(lambda: self.output_has(lines=1))
+        filebeat.check_kill_and_wait()
+
+        output = self.read_output(
+            required_fields=["@timestamp", "type"],
+        )[0]
+        assert "message" not in output
+        assert "offset" in output

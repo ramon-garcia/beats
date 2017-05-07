@@ -59,7 +59,9 @@ func (b EventBuilder) Build() (common.MapStr, error) {
 	metricsetData := common.MapStr{
 		"module": b.ModuleName,
 		"name":   b.MetricSetName,
-		"rtt":    b.FetchDuration.Nanoseconds() / int64(time.Microsecond),
+	}
+	if b.FetchDuration != 0 {
+		metricsetData["rtt"] = b.FetchDuration.Nanoseconds() / int64(time.Microsecond)
 	}
 
 	namespace := b.MetricSetName
@@ -101,7 +103,9 @@ func (b EventBuilder) Build() (common.MapStr, error) {
 
 	// Adds error to event in case error happened
 	if b.fetchErr != nil {
-		event["error"] = b.fetchErr.Error()
+		event["error"] = common.MapStr{
+			"message": b.fetchErr.Error(),
+		}
 	}
 
 	return event, nil

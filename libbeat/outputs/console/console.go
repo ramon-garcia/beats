@@ -21,7 +21,7 @@ type console struct {
 	codec outputs.Codec
 }
 
-func New(_ string, config *common.Config, _ int) (outputs.Outputer, error) {
+func New(_ common.BeatInfo, config *common.Config) (outputs.Outputer, error) {
 	var unpackedConfig Config
 	err := config.Unpack(&unpackedConfig)
 	if err != nil {
@@ -78,6 +78,7 @@ func (c *console) PublishEvent(
 	}
 
 	op.SigCompleted(s)
+	return nil
 fail:
 	if opts.Guaranteed {
 		logp.Critical("Unable to publish events to console: %v", err)

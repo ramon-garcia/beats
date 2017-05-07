@@ -56,7 +56,7 @@ func TestReadLine(t *testing.T) {
 	defer readFile.Close()
 	assert.Nil(t, err)
 
-	f := source.File{readFile}
+	f := source.File{File: readFile}
 
 	h := Harvester{
 		config: harvesterConfig{
@@ -69,7 +69,6 @@ func TestReadLine(t *testing.T) {
 		},
 		file: f,
 	}
-	assert.NotNil(t, h)
 
 	var ok bool
 	h.encodingFactory, ok = encoding.FindEncoding(h.config.Encoding)

@@ -19,19 +19,22 @@ type Crawler struct {
 	wg                sync.WaitGroup
 	reloader          *cfgfile.Reloader
 	once              bool
+	beatDone          chan struct{}
 }
 
-func New(out prospector.Outlet, prospectorConfigs []*common.Config, once bool) (*Crawler, error) {
+func New(out prospector.Outlet, prospectorConfigs []*common.Config, beatDone chan struct{}, once bool) (*Crawler, error) {
 
 	return &Crawler{
 		out:               out,
 		prospectors:       map[uint64]*prospector.Prospector{},
 		prospectorConfigs: prospectorConfigs,
 		once:              once,
+		beatDone:          beatDone,
 	}, nil
 }
 
-func (c *Crawler) Start(r *registrar.Registrar, reloaderConfig *common.Config) error {
+// Start starts the crawler with all prospectors
+func (c *Crawler) Start(r *registrar.Registrar, configProspectors *common.Config) error {
 
 	logp.Info("Loading Prospectors: %v", len(c.prospectorConfigs))
 
@@ -43,11 +46,11 @@ func (c *Crawler) Start(r *registrar.Registrar, reloaderConfig *common.Config) e
 		}
 	}
 
-	if reloaderConfig.Enabled() {
-		logp.Warn("EXPERIMENTAL feature dynamic configuration reloading is enabled.")
+	if configProspectors.Enabled() {
+		logp.Beta("Loading separate prospectors is enabled.")
 
-		c.reloader = cfgfile.NewReloader(reloaderConfig)
-		factory := prospector.NewFactory(c.out, r)
+		c.reloader = cfgfile.NewReloader(configProspectors)
+		factory := prospector.NewFactory(c.out, r, c.beatDone)
 		go func() {
 			c.reloader.Run(factory)
 		}()
@@ -62,7 +65,7 @@ func (c *Crawler) startProspector(config *common.Config, states []file.State) er
 	if !config.Enabled() {
 		return nil
 	}
-	p, err := prospector.NewProspector(config, c.out)
+	p, err := prospector.NewProspector(config, c.out, c.beatDone)
 	if err != nil {
 		return fmt.Errorf("Error in initing prospector: %s", err)
 	}
@@ -74,7 +77,7 @@ func (c *Crawler) startProspector(config *common.Config, states []file.State) er
 
 	err = p.LoadStates(states)
 	if err != nil {
-		return fmt.Errorf("error loading states for propsector %v: %v", p.ID(), err)
+		return fmt.Errorf("error loading states for prospector %v: %v", p.ID(), err)
 	}
 
 	c.prospectors[p.ID()] = p

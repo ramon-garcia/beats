@@ -28,13 +28,14 @@ func TestProspectorFileExclude(t *testing.T) {
 
 	prospector := Prospector{
 		config: prospectorConfig{
+			Paths:        []string{"test.log"},
 			ExcludeFiles: []match.Matcher{match.MustCompile(`\.gz$`)},
 		},
 	}
 
-	p, err := NewProspectorLog(&prospector)
+	l, err := NewLog(&prospector)
 	assert.NoError(t, err)
 
-	assert.True(t, p.isFileExcluded("/tmp/log/logw.gz"))
-	assert.False(t, p.isFileExcluded("/tmp/log/logw.log"))
+	assert.True(t, l.isFileExcluded("/tmp/log/logw.gz"))
+	assert.False(t, l.isFileExcluded("/tmp/log/logw.log"))
 }

@@ -51,11 +51,11 @@ Beats](https://github.com/elastic/beats/blob/master/libbeat/docs/communitybeats.
 
 The Beats are Go programs, so install the latest version of
 [golang](http://golang.org/) if you don't have it already. The current Go version
-used for development is Golang 1.7.4.
+used for development is Golang 1.8.1.
 
 The location where you clone is important. Please clone under the source
 directory of your `GOPATH`. If you don't have `GOPATH` already set, you can
-simply set it to your home directory (`export GOPATH=$HOME`).
+simply set it to the `go` directory in your home (`export GOPATH=$HOME/go`).
 
     $ mkdir -p ${GOPATH}/src/github.com/elastic
     $ cd ${GOPATH}/src/github.com/elastic
@@ -97,8 +97,8 @@ You can run the whole testsuite with the following command:
 Running the testsuite has the following requirements:
 
 * Python >=2.7.9
-* Docker >=1.10.0
-* Docker-compose >= 1.8.0
+* Docker >=1.12
+* Docker-compose >= 1.11
 
 
 ## Documentation
@@ -112,7 +112,7 @@ inside the folder for the Beat. This will automatically open your browser with t
 ## Dependencies
 
 To manage the `vendor/` folder we use
-[glide](https://github.com/Masterminds/glide), which uses
-[glide.yaml](glide.yaml) as a manifest file for the dependencies. Please see
-the glide documentation on how to add or update vendored dependencies.
+[govendor](https://github.com/kardianos/govendor). Please see
+the govendor documentation on how to add or update vendored dependencies.
 
+In most cases `govendor fetch your/dependency@version +out` will get the job done.
