@@ -229,16 +229,16 @@ func (ccor correlateUse) Run(event common.MapStr) (common.MapStr, error) {
 		return nil, err
 	}
 	if !rows.Next() {
-		logp.Info("correlate_use database %s : key %s not found", ccor.databaseName, event[ccor.fieldKey])
+		logp.Info("correlate_use database %s : key %s not found", ccor.databaseName, fieldKey)
 		return event, nil
 	}
 	if rows.Err() != nil {
-		logp.Err("correlate_use: error querying database %s key %s error %s", ccor.databaseName, event[ccor.fieldKey], rows.Err())
+		logp.Err("correlate_use: error querying database %s key %s error %s", ccor.databaseName, fieldKey, rows.Err())
 		return event, nil
 	}
 	columns, err := rows.Columns()
 	if err != nil {
-		logp.Err("correlate_use: error querying database %s key %s error %s", ccor.databaseName, event[ccor.fieldKey], rows.Err())
+		logp.Err("correlate_use: error querying database %s key %s error %s", ccor.databaseName, fieldKey, rows.Err())
 		return nil, err
 	}
 	correlatedData := make([]string, len(columns))
@@ -248,7 +248,7 @@ func (ccor correlateUse) Run(event common.MapStr) (common.MapStr, error) {
 	}
 	err = rows.Scan(correlatedDataArg...)
 	if err != nil {
-		logp.Err("correlate_use: error reading query reply %s key %s error %s", ccor.databaseName, event[ccor.fieldKey], rows.Err())
+		logp.Err("correlate_use: error reading query reply %s key %s error %s", ccor.databaseName, fieldKey, rows.Err())
 		return event, nil
 	}
 	for i, data := range correlatedData {
